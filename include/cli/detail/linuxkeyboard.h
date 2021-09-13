@@ -38,6 +38,8 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include <poll.h>
+
 #include "inputdevice.h"
 
 
@@ -54,11 +56,11 @@ public:
     {
         ToManualMode();
         servant = std::make_unique<std::thread>( [this](){ Read(); } );
-        servant->detach();
     }
     ~LinuxKeyboard() override
     {
         run = false;
+        servant->join();
         ToStandardMode();
     }
 
@@ -66,8 +68,15 @@ private:
 
     void Read()
     {
+        struct pollfd pollstdin;
+        pollstdin.fd = fileno(stdin);
+        pollstdin.events = POLLIN | POLLPRI;
         while ( run )
         {
+            if(poll(&pollstdin, 1, 10) == 0)
+            {
+              continue; // timed out
+            }
             auto k = Get();
             Notify(k);
         }

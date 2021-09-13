@@ -60,6 +60,8 @@ private:
         NewCommand(s);
     }
 
+public:
+
     void NewCommand(const std::pair<Symbol, std::string>& s)
     {
         switch (s.first)
@@ -90,22 +92,41 @@ private:
                 terminal.SetLine(session.PreviousCmd(line));
                 break;
             }
+            case Symbol::skip:
+            {
+                auto line = terminal.GetLine();
+                session.OutStream() << '\n' << s.second << '\n';
+                session.Prompt();
+                terminal.ResetCursor();
+                terminal.SetLine( line );
+                break;
+            }
             case Symbol::tab:
             {
                 auto line = terminal.GetLine();
                 auto completions = session.GetCompletions(line);
-
                 if (completions.empty())
+                {
+                    session.OutStream() << '\n';
+                    session.Prompt();
+                    terminal.ResetCursor();
+                    terminal.SetLine( line );
                     break;
+                }
                 if (completions.size() == 1)
                 {
+                    session.OutStream() << '\n';
+                    session.Prompt();
+                    terminal.ResetCursor();
                     terminal.SetLine(completions[0]+' ');
                     break;
                 }
-
                 auto commonPrefix = CommonPrefix(completions);
                 if (commonPrefix.size() > line.size())
                 {
+                    session.OutStream() << '\n';
+                    session.Prompt();
+                    terminal.ResetCursor();
                     terminal.SetLine(commonPrefix);
                     break;
                 }

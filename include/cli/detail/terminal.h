@@ -46,6 +46,7 @@ enum class Symbol
     up,
     down,
     tab,
+    skip,
     eof
 };
 

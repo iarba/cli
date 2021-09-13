@@ -69,6 +69,7 @@ public:
 
 private:
     detail::Keyboard kb;
+public:
     detail::InputHandler ih;
 };
 
